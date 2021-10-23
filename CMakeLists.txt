@@ -17,6 +17,7 @@ set (
 # HEADERS
 set (
     HEADERS
+        utils.h
         customallocator.h
 )
 
