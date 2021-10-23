@@ -49,4 +49,7 @@ CMakeLists.txt.user*
 compile_commands.json
 
 # QtCreator local machine specific files for imported projects
-*creator.user*
+*creator.user* 
+
+# MY
+*.build/
