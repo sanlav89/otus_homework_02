@@ -11,16 +11,17 @@ project(${PROJECT_NAME} VERSION ${PROJECT_VESRION})
 set (
     SOURCES
         main.cpp
+        customallocator.cpp
 )
 
 # HEADERS
-#set (
-#    HEADERS
-#        ipaddr.h
-#)
+set (
+    HEADERS
+        customallocator.h
+)
 
 # EXECUTABLE
-add_executable(allocator ${SOURCES})
+add_executable(allocator ${SOURCES} ${HEADERS})
 add_executable(gtest_sample gtest_sample.cpp)
 
 # PROPERTIES
@@ -28,7 +29,7 @@ set_target_properties (
     allocator
     gtest_sample
         PROPERTIES
-            CMAKE_CXX_STANDARD 11
+            CMAKE_CXX_STANDARD 14
             CMAKE_CXX_STANDARD_REQUIRED ON
 )
 
@@ -53,10 +54,8 @@ else ()
     )
 endif()
 
-# SUBDIRECTORIES
 
-
-# Package
+### Package
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
