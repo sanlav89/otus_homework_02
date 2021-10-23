@@ -21,12 +21,15 @@ set (
 
 # EXECUTABLE
 add_executable(allocator ${SOURCES})
+add_executable(gtest_sample gtest_sample.cpp)
 
 # PROPERTIES
 set_target_properties (
-    allocator PROPERTIES
-        CMAKE_CXX_STANDARD 11
-        CMAKE_CXX_STANDARD_REQUIRED ON
+    allocator
+    gtest_sample
+        PROPERTIES
+            CMAKE_CXX_STANDARD 11
+            CMAKE_CXX_STANDARD_REQUIRED ON
 )
 
 # INCLUDEPATH
@@ -38,8 +41,14 @@ if (MSVC)
     target_compile_options(allocator PRIVATE
         /W4
     )
+    target_compile_options(gtest_sample PRIVATE
+        /W4
+    )
 else ()
     target_compile_options(allocator PRIVATE
+        -Wall -Wextra -pedantic -Werror
+    )
+    target_compile_options(gtest_sample PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
 endif()
@@ -56,7 +65,7 @@ set(CPACK_PACKAGE_VERSION_PATCH "${PROJECT_VERSION_PATCH}")
 set(CPACK_PACKAGE_CONTACT example@example.com)
 include(CPack)
 
-# Testing
+### UNIT-tests
 
 # GoogleTest package
 include(FetchContent)
@@ -69,30 +78,12 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 
-# Tests exe
-add_executable(gtest_sample gtest_sample.cpp)
-set_target_properties (
-    gtest_sample
-        PROPERTIES
-            CMAKE_CXX_STANDARD 11
-            CMAKE_CXX_STANDARD_REQUIRED ON
-)
-
+# Tests linking
 gtest_discover_tests(gtest_sample)
 target_link_libraries(
     gtest_sample
     gtest_main
 )
-
-if (MSVC)
-    target_compile_options(gtest_sample PRIVATE
-        /W4
-    )
-else ()
-    target_compile_options(gtest_sample PRIVATE
-        -Wall -Wextra -pedantic -Werror
-    )
-endif()
 
 # Testing
 enable_testing()
