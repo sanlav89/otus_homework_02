@@ -19,6 +19,7 @@ set (
     HEADERS
         utils.h
         customallocator.h
+        customcontainer.h
 )
 
 # EXECUTABLE
