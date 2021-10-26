@@ -10,7 +10,7 @@
 
 namespace utils {
 
-    template<typename T, typename U, std::size_t BlockSize = 10>
+    template<typename T, typename U, std::size_t BlockSize = 8>
     using c_alloc_map = CustomAllocator<std::pair<T, U>, BlockSize>;
 
     template<typename T>

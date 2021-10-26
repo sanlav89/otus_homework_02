@@ -31,5 +31,9 @@ int main()
     utils::print_vector(vector_std);
     utils::print_vector(vector_custom);
 
+//    std::stack<int> tmp;
+//    tmp.top();
+
+
     return 0;
 }
