@@ -5,7 +5,10 @@
 #include <iostream>
 #include <list>
 
-template <typename T>
+#define PRINT_OFF
+#define UNUSED(value) (void)value
+
+template <typename T, std::size_t BlockSize = 10>
 class CustomAllocator
 {
 public:
@@ -16,7 +19,7 @@ public:
     using reference = T&;
     using const_reference = const T&;
     using size_type = std::size_t;
-    static constexpr int BlockSize = 10;
+//    static constexpr int BlockSize = 10;
 
     template<typename U>
     struct rebind {
@@ -50,7 +53,9 @@ public:
 
     T* allocate (std::size_t n)
     {
+#ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
+#endif
 //        if (m_blockSize - m_cntOfFreeBlocks >= n) {
 //            T *p = &m_p[m_cntOfFreeBlocks];
 //            m_cntOfFreeBlocks += n;
@@ -67,20 +72,28 @@ public:
 
     void deallocate (T* p, std::size_t n)
     {
+#ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
+#else
+        UNUSED(n);
+#endif
         std::free(p);
     }
 
     template<typename U, typename ...Args>
     void construct(U *p, Args &&...args)
     {
+#ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
         new(p) U(std::forward<Args>(args)...);
     }
 
     void destroy(T *p)
     {
+#ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << std::endl;
+#endif
         p->~T();
     }
 

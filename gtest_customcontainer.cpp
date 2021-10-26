@@ -2,7 +2,6 @@
 
 #include "customcontainer.h"
 
-// Demonstrate some basic assertions.
 TEST(CustomContainer, BasicAssertions)
 {
     CustomContainer<int> v;

@@ -1,51 +1,35 @@
 #include <iostream>
 #include <map>
 #include <vector>
-
 #include "utils.h"
-#include "customcontainer.h"
 
 int main()
 {
     std::cout << "Hello from CustomAllocator!" << std::endl;
-    constexpr int map_size = 10;
+    constexpr std::size_t map_size = 10;
 
-//    auto map_std = utils::map_std_alloc<int, int>{};
-//    utils::fill_map_by_factorial(map_std, map_size);
-//    utils::print_map(map_std);
+    auto map_alloc_std = std::map<int, int>{};
+    auto map_alloc_custom =
+            std::map<int, int, std::less<int>, utils::c_alloc_map<int, int>>{};
 
-//    std::cout << "\n\n\n\n****  next part ********\n\n\n\n" << std::endl;
+    for (auto i = 0u; i < map_size; i++) {
+        map_alloc_std.insert({i, utils::factorial(i)});
+        map_alloc_custom.insert({i, utils::factorial(i)});
+    }
 
-//    auto map_custom_allocator = utils::map_custom_alloc<int, int>{};
-//    utils::fill_map_by_factorial(map_custom_allocator, map_size);
-//    utils::print_map(map_custom_allocator);
-//    int *a = static_cast<int *>(&map_custom_allocator.begin());
+    utils::print_map(map_alloc_std);
+    utils::print_map(map_alloc_custom);
 
-//    std::cout << "\n\n\n\n****  next part ********\n\n\n\n" << std::endl;
+    auto vector_std = std::vector<int, utils::c_alloc_vec<int>>{};
+    auto vector_custom = CustomContainer<int, utils::c_alloc_vec<int>>{};
 
-    std::vector<int> vector_std;
-    std::vector<int, CustomAllocator<int>> vector;
-
-    CustomContainer<int> vector_custom;
-
-    for (int i = 0; i < map_size; ++i) {
-        vector.push_back(i);
+    for (auto i = 0u; i < map_size; i++) {
+        vector_std.push_back(i);
         vector_custom.push_back(i);
     }
 
-    for (int i = 0; i < map_size; ++i) {
-        std::cout << vector[i] << " " << vector_custom[i] << std::endl;
-    }
-    std::cout << std::endl;
-
-
-//    std::cout << "\n\n\n\n****  next part ********\n\n\n\n" << std::endl;
-
-//    auto other = vector;
-//    for (const auto& v : other) {
-//        std::cout << v << ' ';
-//    }
-//    std::cout << std::endl;
+    utils::print_vector(vector_std);
+    utils::print_vector(vector_custom);
 
     return 0;
 }
