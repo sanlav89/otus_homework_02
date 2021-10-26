@@ -14,21 +14,25 @@ set (
 )
 
 # HEADERS
-#set (
-#    HEADERS
-#        ipaddr.h
-#)
+set (
+    HEADERS
+        utils.h
+        customallocator.h
+        customcontainer.h
+)
 
 # EXECUTABLE
-add_executable(allocator ${SOURCES})
+add_executable(allocator ${SOURCES} ${HEADERS})
 add_executable(gtest_sample gtest_sample.cpp)
+add_executable(gtest_customcontainer gtest_customcontainer.cpp)
 
 # PROPERTIES
 set_target_properties (
     allocator
     gtest_sample
+    gtest_customcontainer
         PROPERTIES
-            CMAKE_CXX_STANDARD 11
+            CMAKE_CXX_STANDARD 14
             CMAKE_CXX_STANDARD_REQUIRED ON
 )
 
@@ -44,6 +48,9 @@ if (MSVC)
     target_compile_options(gtest_sample PRIVATE
         /W4
     )
+    target_compile_options(gtest_customcontainer PRIVATE
+        /W4
+    )
 else ()
     target_compile_options(allocator PRIVATE
         -Wall -Wextra -pedantic -Werror
@@ -51,12 +58,12 @@ else ()
     target_compile_options(gtest_sample PRIVATE
         -Wall -Wextra -pedantic -Werror
     )
+    target_compile_options(gtest_customcontainer PRIVATE
+        -Wall -Wextra -pedantic -Werror
+    )
 endif()
 
-# SUBDIRECTORIES
-
-
-# Package
+### Package
 install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION bin)
 set(CPACK_GENERATOR DEB)
 set(CPACK_PACKAGE_VERSION_MAJOR "${PROJECT_VERSION_MAJOR}")
@@ -85,6 +92,13 @@ target_link_libraries(
     gtest_main
 )
 
+gtest_discover_tests(gtest_customcontainer)
+target_link_libraries(
+    gtest_customcontainer
+    gtest_main
+)
+
 # Testing
 enable_testing()
 add_test(gtest_sample gtest_sample)
+add_test(gtest_customcontainer gtest_customcontainer)
