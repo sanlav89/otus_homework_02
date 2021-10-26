@@ -2,8 +2,9 @@
 #define CUSTOMCONTAINER_H
 
 #include <memory>
+#include <cstring>
 
-template <class T, class A = std::allocator<T> >
+template <class T, class A = std::allocator<T>, std::size_t Capacity = 10 >
 class CustomContainer {
 public:
     typedef A allocator_type;
@@ -13,74 +14,104 @@ public:
     typedef typename A::difference_type difference_type;
     typedef typename A::size_type size_type;
 
+    // Iterator Class
     class iterator {
     public:
-        typedef typename A::difference_type difference_type;
-        typedef typename A::value_type value_type;
-        typedef typename A::reference reference;
-        typedef typename A::pointer pointer;
-        typedef std::random_access_iterator_tag iterator_category; //or another tag
+        iterator()
+            : m_ptr(nullptr)
+        {
+        }
+        iterator(T* p)
+            : m_ptr(p)
+        {
+        }
+        bool operator==(const iterator& other) const
+        {
+            return m_ptr == other.m_ptr;
+        }
+        bool operator!=(const iterator& other) const
+        {
+            return !(*this == other);
+        }
+        T operator*() const
+        {
+            return *m_ptr;
+        }
+        iterator& operator++()
+        {
+            ++m_ptr;
+            return *this;
+        }
+        iterator operator++(int)
+        {
+            iterator temp(*this);
+            ++*this;
+            return temp;
+        }
 
-        iterator();
-        iterator(const iterator&);
-        ~iterator();
-
-        iterator& operator=(const iterator&);
-        bool operator==(const iterator&) const;
-        bool operator!=(const iterator&) const;
-
-        iterator& operator++();
-
-        reference operator*() const;
-        pointer operator->() const;
-
+    private:
+        T* m_ptr;
     };
 
-    class const_iterator {
-    public:
-        typedef typename A::difference_type difference_type;
-        typedef typename A::value_type value_type;
-        typedef typename A::reference reference;
-        typedef typename A::pointer pointer;
-        typedef std::random_access_iterator_tag iterator_category; //or another tag
 
-        const_iterator ();
-        const_iterator (const const_iterator&);
-        const_iterator (const iterator&);
-        ~const_iterator();
+    CustomContainer(std::size_t = Capacity)
+        : m_size(0)
+        , m_capacity(Capacity)
+        , m_data(new T[Capacity])
+    {
+    }
 
-        const_iterator& operator=(const const_iterator&);
-        bool operator==(const const_iterator&) const;
-        bool operator!=(const const_iterator&) const;
+    ~CustomContainer()
+    {
+        if (m_capacity) {
+            delete [] m_data;
+        }
+    }
 
-        const_iterator& operator++();
+    void push_back(const T &value)
+    {
+        if (m_size == m_capacity) {
+            T *old = m_data;
+            if (m_capacity == 0) {
+                m_capacity = 1;
+            } else {
+                m_capacity *= 2;
+            }
+            m_data = new T[m_capacity];
+            std::memcpy(m_data, old, m_size);
+            delete [] old;
+        }
+        m_data[m_size++] = value;
+    }
 
-        reference operator*() const;
-        pointer operator->() const;
-    };
+    iterator begin()
+    {
+        return iterator(m_data);
+    }
 
-    CustomContainer();
-    CustomContainer(const CustomContainer &other);
-    ~CustomContainer();
+    iterator end()
+    {
+        return iterator(m_data + m_size);
+    }
 
-    CustomContainer& operator=(const CustomContainer&);
-    bool operator==(const CustomContainer &) const;
-    bool operator!=(const CustomContainer &) const;
+    size_type size() const
+    {
+        return m_size;
+    }
 
-    iterator begin();
-    const_iterator begin() const;
-    const_iterator cbegin() const;
-    iterator end();
-    const_iterator end() const;
-    const_iterator cend() const;
+    T &operator[](std::size_t index)
+    {
+        if (index >= m_size) {
+            throw std::out_of_range("Error: Array index out of bound");
+        }
+        return m_data[index];
+    }
 
-    void push_back(const T&); //optional
-    void push_back(T&&); //optional
 
-    void swap(CustomContainer &);
-    size_type size() const;
-    size_type max_size() const;
-    bool empty() const;
+private:
+    std::size_t m_size;
+    std::size_t m_capacity;
+    T *m_data;
 
 };
 
