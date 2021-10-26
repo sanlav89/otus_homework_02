@@ -15,6 +15,7 @@ public:
     using const_pointer = const T*;
     using reference = T&;
     using const_reference = const T&;
+    using size_type = std::size_t;
     static constexpr int BlockSize = 10;
 
     template<typename U>
@@ -27,17 +28,17 @@ public:
         , m_cntOfFreeBlocks(0)
         , m_p(nullptr)
     {
-        m_p = reinterpret_cast<T *>(std::malloc(m_blockSize * sizeof(T)));
-        if (m_p == nullptr) {
-            throw std::bad_alloc();
-        }
+//        m_p = reinterpret_cast<T *>(std::malloc(m_blockSize * sizeof(T)));
+//        if (m_p == nullptr) {
+//            throw std::bad_alloc();
+//        }
     }
 
     ~CustomAllocator()
     {
-        if (m_p != nullptr) {
-            std::free(m_p);
-        }
+//        if (m_p != nullptr) {
+//            std::free(m_p);
+//        }
     }
 
     template <typename U>
@@ -50,19 +51,24 @@ public:
     T* allocate (std::size_t n)
     {
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
-        if (m_blockSize - m_cntOfFreeBlocks >= n) {
-            T *p = &m_p[m_cntOfFreeBlocks];
-            m_cntOfFreeBlocks += n;
-            return p;
-        } else {
+//        if (m_blockSize - m_cntOfFreeBlocks >= n) {
+//            T *p = &m_p[m_cntOfFreeBlocks];
+//            m_cntOfFreeBlocks += n;
+//            return p;
+//        } else {
+//            throw std::bad_alloc();
+//        }
+        auto p = std::malloc(n * sizeof(T));
+        if (!p) {
             throw std::bad_alloc();
         }
-
+        return reinterpret_cast<T *>(p);
     }
 
-    void deallocate (T* , std::size_t n)
+    void deallocate (T* p, std::size_t n)
     {
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
+        std::free(p);
     }
 
     template<typename U, typename ...Args>

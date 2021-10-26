@@ -3,16 +3,11 @@
 
 #include <memory>
 #include <cstring>
+#include <iostream>
 
-template <class T, class A = std::allocator<T>, std::size_t Capacity = 10 >
+template <class T, class Alloc = std::allocator<T>, std::size_t Capacity = 0 >
 class CustomContainer {
 public:
-    typedef A allocator_type;
-    typedef typename A::value_type value_type;
-    typedef typename A::reference reference;
-    typedef typename A::const_reference const_reference;
-    typedef typename A::difference_type difference_type;
-    typedef typename A::size_type size_type;
 
     // Iterator Class
     class iterator {
@@ -21,27 +16,33 @@ public:
             : m_ptr(nullptr)
         {
         }
-        iterator(T* p)
+
+        iterator(T *p)
             : m_ptr(p)
         {
         }
+
         bool operator==(const iterator& other) const
         {
             return m_ptr == other.m_ptr;
         }
+
         bool operator!=(const iterator& other) const
         {
             return !(*this == other);
         }
+
         T operator*() const
         {
             return *m_ptr;
         }
+
         iterator& operator++()
         {
             ++m_ptr;
             return *this;
         }
+
         iterator operator++(int)
         {
             iterator temp(*this);
@@ -50,38 +51,58 @@ public:
         }
 
     private:
-        T* m_ptr;
+        T *m_ptr;
     };
 
 
     CustomContainer(std::size_t = Capacity)
         : m_size(0)
         , m_capacity(Capacity)
-        , m_data(new T[Capacity])
+        , m_alloc(new Alloc)
     {
+        m_data = m_alloc->allocate(Capacity);
     }
 
     ~CustomContainer()
     {
-        if (m_capacity) {
-            delete [] m_data;
+        for (std::size_t i = 0; i < m_size; i++) {
+            m_alloc->destroy(&m_data[i]);
         }
+        if (m_capacity > 0) {
+            m_alloc->deallocate(m_data, m_capacity);
+        }
+        delete m_alloc;
     }
 
     void push_back(const T &value)
     {
         if (m_size == m_capacity) {
-            T *old = m_data;
+            T *ptr_old = m_data;
+            T *ptr_new;
             if (m_capacity == 0) {
                 m_capacity = 1;
             } else {
                 m_capacity *= 2;
             }
-            m_data = new T[m_capacity];
-            std::memcpy(m_data, old, m_size);
-            delete [] old;
+
+            m_data = m_alloc->allocate(m_capacity);
+            ptr_new = m_data;
+
+            for (std::size_t i = 0; i < m_size; i++) {
+                m_alloc->construct(ptr_new++, *ptr_old++);
+            }
+
+            m_alloc->construct(ptr_new, value);
+            for (std::size_t i = 0; i < m_size; i++) {
+                m_alloc->destroy(ptr_old--);
+            }
+            m_alloc->deallocate(ptr_old, m_size);
+
+            m_size++;
+
+        } else {
+            m_alloc->construct(&m_data[m_size++], value);
         }
-        m_data[m_size++] = value;
     }
 
     iterator begin()
@@ -94,7 +115,7 @@ public:
         return iterator(m_data + m_size);
     }
 
-    size_type size() const
+    std::size_t size() const
     {
         return m_size;
     }
@@ -112,6 +133,7 @@ private:
     std::size_t m_size;
     std::size_t m_capacity;
     T *m_data;
+    Alloc *m_alloc;
 
 };
 

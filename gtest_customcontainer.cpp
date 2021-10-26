@@ -23,7 +23,9 @@ TEST(CustomContainer, BasicAssertions)
     it++;
     EXPECT_EQ(*it, 6);
 
-    it = v.end();
     v.push_back(13);
-    EXPECT_EQ(*it, 13);
+    it = v.end();
+    v.push_back(14);
+
+    EXPECT_EQ(*it, 14);
 }
