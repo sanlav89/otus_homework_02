@@ -19,30 +19,14 @@ public:
     using reference = T&;
     using const_reference = const T&;
     using size_type = std::size_t;
-//    static constexpr int BlockSize = 10;
 
     template<typename U>
     struct rebind {
         using other = CustomAllocator<U>;
     };
 
-    CustomAllocator()
-        : m_blockSize(BlockSize)
-        , m_cntOfFreeBlocks(0)
-        , m_p(nullptr)
-    {
-//        m_p = reinterpret_cast<T *>(std::malloc(m_blockSize * sizeof(T)));
-//        if (m_p == nullptr) {
-//            throw std::bad_alloc();
-//        }
-    }
-
-    ~CustomAllocator()
-    {
-//        if (m_p != nullptr) {
-//            std::free(m_p);
-//        }
-    }
+    CustomAllocator() = default;
+    ~CustomAllocator() = default;
 
     template <typename U>
     CustomAllocator(const CustomAllocator<U> &)
@@ -56,13 +40,6 @@ public:
 #ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
 #endif
-//        if (m_blockSize - m_cntOfFreeBlocks >= n) {
-//            T *p = &m_p[m_cntOfFreeBlocks];
-//            m_cntOfFreeBlocks += n;
-//            return p;
-//        } else {
-//            throw std::bad_alloc();
-//        }
         auto p = std::malloc(n * sizeof(T));
         if (!p) {
             throw std::bad_alloc();
@@ -96,11 +73,6 @@ public:
 #endif
         p->~T();
     }
-
-private:
-    std::size_t m_blockSize;
-    std::size_t m_cntOfFreeBlocks;
-    T *m_p;
 
 };
 
