@@ -40,16 +40,16 @@ namespace utils {
     }
 
     template<typename T>
-    void print_vector(const std::vector<T, c_alloc_vec<T>> &v)
+    void print_vector(const CustomContainer<T> &v)
     {
-        std::cout << "std::vector with custom allocator: " << std::endl;
-        for (auto value : v) {
-            std::cout << value << std::endl;
+        std::cout << "custom vector with std allocator: " << std::endl;
+        for (auto it = v.begin(); it != v.end(); it++) {
+            std::cout << *it << std::endl;
         }
     }
 
-    template<typename T>
-    void print_vector(const CustomContainer<T, c_alloc_vec<T>> &v)
+    template<typename T, std::size_t BlockSize = 8>
+    void print_vector(const CustomContainer<T, c_alloc_vec<T>, BlockSize> &v)
     {
         std::cout << "custom vector with custom allocator: " << std::endl;
         for (auto it = v.begin(); it != v.end(); it++) {

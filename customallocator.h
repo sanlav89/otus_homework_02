@@ -6,6 +6,7 @@
 #include <stack>
 #include <queue>
 #include <cassert>
+#include <list>
 
 #define PRINT_OFF
 #define UNUSED(value) (void)value
@@ -28,22 +29,15 @@ public:
     };
 
     CustomAllocator()
-        : m_itemCnt(0)
     {
-        assert(BlockSize > 0);
-        T *p = reinterpret_cast<T *>(std::malloc(BlockSize * sizeof(T)));
-        if (p == nullptr) {
-            throw std::bad_alloc();
-        }
-        m_blocks.push(p);
     }
 
     ~CustomAllocator()
     {
         while (m_blocks.size() > 0) {
-            T *p = m_blocks.top();
+            T *p = m_blocks.front();
             std::free(p);
-            m_blocks.pop();
+            m_blocks.pop_front();
         }
     }
 
@@ -59,32 +53,22 @@ public:
 #ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
 #endif
-//        auto p = std::malloc(n * sizeof(T));
-//        if (!p) {
-//            throw std::bad_alloc();
-//        }
-//        return reinterpret_cast<T *>(p);
-        assert(n == 1);
-
-        if (m_freeItems.size() > 0) {
-            T *p = m_freeItems.front();
-            m_freeItems.pop();
-            return p;
-        }
-
-        if (m_itemCnt == BlockSize) {
+//        assert()
+        if (m_addresses.size() < n) {
             T *p = reinterpret_cast<T *>(std::malloc(BlockSize * sizeof(T)));
             if (p == nullptr) {
                 throw std::bad_alloc();
             }
-            m_blocks.push(p);
-            m_itemCnt = 0;
-            return p;
-        } else {
-            T *p = &(m_blocks.top()[m_itemCnt]);
-            m_itemCnt += n;
-            return p;
+            m_blocks.push_back(p);
+            for (auto i = 0u; i < BlockSize; i++) {
+                m_addresses.push_back(p++);
+            }
         }
+        T *p = m_addresses.front();
+        for (auto i = 0u; i < n; i++) {
+            m_addresses.pop_front();
+        }
+        return p;
     }
 
     void deallocate (T* p, std::size_t n)
@@ -94,9 +78,10 @@ public:
 #else
         UNUSED(n);
 #endif
-        assert(n == 1);
-        m_freeItems.push(p);
-//        std::free(p);
+        for (auto i = 0u; i < n; i++) {
+            m_addresses.push_back(p++);
+        }
+        m_addresses.sort();
     }
 
     template<typename U, typename ...Args>
@@ -117,9 +102,8 @@ public:
     }
 
 private:
-    std::queue<T *> m_freeItems;
-    std::stack<T *> m_blocks;
-    std::size_t m_itemCnt;
+    std::list<T *> m_blocks;
+    std::list<T *> m_addresses;
 
 };
 
