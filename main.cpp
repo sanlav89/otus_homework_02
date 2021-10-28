@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <algorithm>
 #include "utils.h"
 
 int main()
@@ -20,16 +21,16 @@ int main()
     utils::print_map(map_alloc_std);
     utils::print_map(map_alloc_custom);
 
-    auto vector_std = std::vector<int, utils::c_alloc_vec<int>>{};
-    auto vector_custom = CustomContainer<int, utils::c_alloc_vec<int>>{};
+    auto vector_std_alloc = CustomContainer<int>(map_size);
+    auto vector_custom_alloc = CustomContainer<int, utils::c_alloc_vec<int>>{};
 
     for (auto i = 0u; i < map_size; i++) {
-        vector_std.push_back(i);
-        vector_custom.push_back(i);
+        vector_std_alloc.push_back(i);
+        vector_custom_alloc.push_back(i);
     }
 
-    utils::print_vector(vector_std);
-    utils::print_vector(vector_custom);
+    utils::print_vector(vector_std_alloc);
+    utils::print_vector(vector_custom_alloc);
 
     return 0;
 }
