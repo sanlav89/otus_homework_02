@@ -28,3 +28,16 @@ TEST(CustomContainer, BasicAssertions)
 
     EXPECT_EQ(*it, 14);
 }
+
+TEST(CustomContainerExtended, BasicAssertions)
+{
+    constexpr std::size_t map_size = 10;
+    auto vector_std_alloc = CustomContainer<int>(map_size);
+    for (auto i = 0u; i < 2 * map_size; i++) {
+        vector_std_alloc.push_back(i);
+    }
+
+    for (auto i = 0u; i < 2 * map_size; i++) {
+        EXPECT_EQ(vector_std_alloc[i], i);
+    }
+}

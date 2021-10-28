@@ -4,6 +4,7 @@
 #include <memory>
 #include <cstring>
 #include <iostream>
+#include <list>
 
 template <class T, class Alloc = std::allocator<T>>
 class CustomContainer {
@@ -58,11 +59,18 @@ public:
     CustomContainer(std::size_t capacity = 0)
         : m_size(0)
         , m_capacity(capacity)
-        , m_data(nullptr)
+        , m_blockSize(capacity)
+        , m_data(std::list<T *>{})
         , m_alloc(new Alloc)
     {
-        if (m_capacity > 0) {
-            m_data = m_alloc->allocate(capacity);
+//        if (m_capacity > 0) {
+//            m_data = m_alloc->allocate(capacity);
+//        }
+        if (m_blockSize > 0) {
+            T *data = new T[m_blockSize];
+            m_data.push_back(data);
+        } else {
+            m_blockSize = 1;
         }
     }
 
@@ -73,26 +81,43 @@ public:
 
     void push_back(const T &value)
     {
-        if (m_size >= m_capacity) {
-            T *data = m_alloc->allocate(1);
-            m_alloc->construct(data, value);
-            if (m_data == nullptr) {
-                m_data = data;
+//        if (m_size >= m_capacity) {
+//            T *data = m_alloc->allocate(1);
+//            m_alloc->construct(data, value);
+//            if (m_data == nullptr) {
+//                m_data = data;
+//            }
+//            m_size++;
+//        } else {
+//            m_alloc->construct(&m_data[m_size++], value);
+//        }
+        if (m_size == m_capacity) {
+            if (m_capacity == 0) {
+                m_capacity = 1;
+            } else {
+                m_capacity += m_capacity;
             }
+            T *data = new T[m_blockSize];
+            m_data.push_back(data);
+            data[m_size % m_blockSize] = value;
             m_size++;
         } else {
-            m_alloc->construct(&m_data[m_size++], value);
+            T *data = m_data.back();
+            data[m_size % m_blockSize] = value;
+            m_size++;
         }
     }
 
     iterator begin() const
     {
-        return iterator(m_data);
+        T *data = m_data.back();
+        return iterator(data);
     }
 
     iterator end() const
     {
-        return iterator(m_data + m_size);
+        T *data = m_data.front();
+        return iterator(data + m_blockSize);
     }
 
     std::size_t size() const
@@ -105,13 +130,23 @@ public:
         if (index >= m_size) {
             throw std::out_of_range("Error: Container index out of bound");
         }
-        return m_data[index];
+
+        auto it = m_data.begin();
+        auto ind = index;
+        while (ind / m_blockSize > 0) {
+            it++;
+            ind -= m_blockSize;
+        }
+        T *data = *it;
+
+        return data[index % m_blockSize];
     }
 
 private:
     std::size_t m_size;
     std::size_t m_capacity;
-    T *m_data;
+    std::size_t m_blockSize;
+    std::list<T *>m_data;
     Alloc *m_alloc;
 
 };
