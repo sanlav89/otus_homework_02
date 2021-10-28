@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iostream>
 
-template <class T, class Alloc = std::allocator<T>, std::size_t Capacity = 0 >
+template <class T, class Alloc = std::allocator<T>>
 class CustomContainer {
 public:
 
@@ -32,7 +32,7 @@ public:
             return !(*this == other);
         }
 
-        T operator*() const
+        T &operator*() const
         {
             return *m_ptr;
         }
@@ -55,51 +55,31 @@ public:
     };
 
 
-    CustomContainer(std::size_t = Capacity)
+    CustomContainer(std::size_t capacity = 0)
         : m_size(0)
-        , m_capacity(Capacity)
+        , m_capacity(capacity)
+        , m_data(nullptr)
         , m_alloc(new Alloc)
     {
-        m_data = m_alloc->allocate(Capacity);
+        if (m_capacity > 0) {
+            m_data = m_alloc->allocate(capacity);
+        }
     }
 
     ~CustomContainer()
     {
-        for (std::size_t i = 0; i < m_size; i++) {
-            m_alloc->destroy(&m_data[i]);
-        }
-        if (m_capacity > 0) {
-            m_alloc->deallocate(m_data, m_capacity);
-        }
         delete m_alloc;
     }
 
     void push_back(const T &value)
     {
-        if (m_size == m_capacity) {
-            T *ptr_old = m_data;
-            T *ptr_new;
-            if (m_capacity == 0) {
-                m_capacity = 1;
-            } else {
-                m_capacity *= 2;
+        if (m_size >= m_capacity) {
+            T *data = m_alloc->allocate(1);
+            m_alloc->construct(data, value);
+            if (m_data == nullptr) {
+                m_data = data;
             }
-
-            m_data = m_alloc->allocate(m_capacity);
-            ptr_new = m_data;
-
-            for (std::size_t i = 0; i < m_size; i++) {
-                m_alloc->construct(ptr_new++, *ptr_old++);
-            }
-
-            m_alloc->construct(ptr_new, value);
-            for (std::size_t i = 0; i < m_size; i++) {
-                m_alloc->destroy(ptr_old--);
-            }
-            m_alloc->deallocate(ptr_old, m_size);
-
             m_size++;
-
         } else {
             m_alloc->construct(&m_data[m_size++], value);
         }
@@ -123,11 +103,10 @@ public:
     T &operator[](std::size_t index)
     {
         if (index >= m_size) {
-            throw std::out_of_range("Error: Array index out of bound");
+            throw std::out_of_range("Error: Container index out of bound");
         }
         return m_data[index];
     }
-
 
 private:
     std::size_t m_size;

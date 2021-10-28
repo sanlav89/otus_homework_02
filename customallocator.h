@@ -2,14 +2,13 @@
 #define CUSTOMALLOCATOR_H
 
 #include <memory>
-#include <iostream>
-#include <stack>
-#include <queue>
 #include <cassert>
-#include <list>
 
 #define PRINT_OFF
-#define UNUSED(value) (void)value
+
+#ifndef PRINT_OFF
+#include <iostream>
+#endif
 
 template <typename T, std::size_t BlockSize = 10>
 class CustomAllocator
@@ -29,15 +28,15 @@ public:
     };
 
     CustomAllocator()
+        : m_itemsCnt(0)
+        , m_ptr(nullptr)
     {
     }
 
     ~CustomAllocator()
     {
-        while (m_blocks.size() > 0) {
-            T *p = m_blocks.front();
-            std::free(p);
-            m_blocks.pop_front();
+        if (m_ptr != nullptr) {
+            std::free(m_ptr);
         }
     }
 
@@ -53,35 +52,23 @@ public:
 #ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
 #endif
-//        assert()
-        if (m_addresses.size() < n) {
-            T *p = reinterpret_cast<T *>(std::malloc(BlockSize * sizeof(T)));
-            if (p == nullptr) {
+        assert(BlockSize - m_itemsCnt >= n);
+        if (m_ptr == nullptr) {
+            m_ptr = reinterpret_cast<T *>(std::malloc(BlockSize * sizeof(T)));
+            if (m_ptr == nullptr) {
                 throw std::bad_alloc();
             }
-            m_blocks.push_back(p);
-            for (auto i = 0u; i < BlockSize; i++) {
-                m_addresses.push_back(p++);
-            }
         }
-        T *p = m_addresses.front();
-        for (auto i = 0u; i < n; i++) {
-            m_addresses.pop_front();
-        }
+        T *p = &m_ptr[m_itemsCnt];
+        m_itemsCnt += n;
         return p;
     }
 
-    void deallocate (T* p, std::size_t n)
+    void deallocate ([[maybe_unused]] T* p, [[maybe_unused]] std::size_t n)
     {
 #ifndef PRINT_OFF
         std::cout << __PRETTY_FUNCTION__ << "[n = " << n << "]" << std::endl;
-#else
-        UNUSED(n);
 #endif
-        for (auto i = 0u; i < n; i++) {
-            m_addresses.push_back(p++);
-        }
-        m_addresses.sort();
     }
 
     template<typename U, typename ...Args>
@@ -102,8 +89,8 @@ public:
     }
 
 private:
-    std::list<T *> m_blocks;
-    std::list<T *> m_addresses;
+    size_type m_itemsCnt;
+    T *m_ptr;
 
 };
 
